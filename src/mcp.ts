@@ -26,7 +26,7 @@ export function createMCPUploadThing({ token }: { token: string }) {
   // Add the upload file tool
   mcpServer.tool(
     "upload-file",
-    "Upload file to Uploadthing. Given a file path, it will upload the file to Uploadthing and return the URL of the uploaded file.",
+    "Upload file to UploadThing. Given a file path, it will upload the file to UploadThing and return the URL of the uploaded file.",
     {
       file: z.string().describe("Path to file to upload"),
       fileName: z.string().describe("Name of the file to upload"),
