@@ -16,7 +16,7 @@ async function main() {
   // Connect the server to stdio transport
   await mcpServer.connect(transport);
 
-  console.error("Uploadthing MCP Server running on stdio");
+  console.error("UploadThing MCP Server running on stdio");
 }
 main().catch((error) => {
   console.error("Fatal error in main():", error);

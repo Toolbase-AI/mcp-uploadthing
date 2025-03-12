@@ -2,7 +2,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { UTApi } from "uploadthing/server";
 import * as fs from "node:fs/promises";
 import { z } from "zod";
-import { File } from "node:buffer";
 
 /**
  * Creates an MCP server with UploadThing integration
