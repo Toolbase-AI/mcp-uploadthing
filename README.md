@@ -6,16 +6,3 @@ A Model Context Protocol (MCP) integration for UploadThing, allowing AI assistan
 
 - Node.js 22+
 - UploadThing account and token
-
-## Installation
-
-```bash
-# Using npm
-npm install mcp-uploadthing
-
-# Using yarn
-yarn add mcp-uploadthing
-
-# Using pnpm
-pnpm add mcp-uploadthing
-```
