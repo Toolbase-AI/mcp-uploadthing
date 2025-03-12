@@ -1,7 +1,9 @@
 {
   "name": "mcp-uploadthing",
+  "author": "Toolbase",
   "version": "0.0.1",
   "description": "MCP for UploadThing",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -30,7 +32,6 @@
     "uploadthing",
     "file-upload"
   ],
-  "author": "Toolbase",
   "devDependencies": {
     "@types/node": "^22.13.10",
     "tsup": "^8.4.0",
