@@ -1,13 +1,13 @@
 {
-  "name": "mcp-uploadthing",
+  "name": "uploadthing-mcp",
   "author": "Toolbase",
   "version": "0.0.1",
   "description": "MCP for UploadThing",
   "license": "MIT",
-  "homepage": "https://github.com/Toolbase-AI/mcp-uploadthing",
+  "homepage": "https://github.com/Toolbase-AI/uploadthing-mcp",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Toolbase-AI/mcp-uploadthing.git"
+    "url": "git+https://github.com/Toolbase-AI/uploadthing-mcp.git"
   },
   "type": "module",
   "main": "dist/index.cjs",
