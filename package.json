@@ -4,6 +4,11 @@
   "version": "0.0.1",
   "description": "MCP for UploadThing",
   "license": "MIT",
+  "homepage": "https://github.com/Toolbase-AI/mcp-uploadthing",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Toolbase-AI/mcp-uploadthing.git"
+  },
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -25,7 +30,7 @@
   },
   "keywords": [
     "mcp",
-    "model-context-protocol",
+    "modelcontextprotocol",
     "uploadthing",
     "file-upload"
   ],
