@@ -14,7 +14,7 @@ export function createMCPUploadThing({ token }: { token: string }) {
   // Create the MCP server
   const mcpServer = new McpServer({
     name: "mcp-uploadthing",
-    version: "0.0.1",
+    version: "0.0.2",
   });
 
   // Create UploadThing API client
@@ -24,43 +24,113 @@ export function createMCPUploadThing({ token }: { token: string }) {
 
   // Add the upload file tool
   mcpServer.tool(
-    "upload-file",
-    "Upload file to UploadThing. Given a file path, it will upload the file to UploadThing and return the URL of the uploaded file.",
+    "upload-files",
+    "Upload files to UploadThing. Given a list of file with their paths, names, and types, it will upload the files to UploadThing and return the URLs of the uploaded files.",
     {
-      file: z.string().describe("Path to file to upload"),
-      fileName: z.string().describe("Name of the file to upload"),
-      fileType: z
-        .string()
+      files: z
+        .array(
+          z.object({
+            filePath: z.string().describe("Path to file to upload"),
+            fileName: z.string().describe("Name of the file to upload"),
+            fileType: z
+              .string()
+              .describe(
+                "MIME type of the file (e.g., 'image/jpeg', 'application/pdf')"
+              ),
+          })
+        )
         .describe(
-          "MIME type of the file (e.g., 'image/jpeg', 'application/pdf')"
+          "Array of files to upload to UploadThing. This includes the file path, file name, and file type."
         ),
     },
     async (params) => {
       try {
-        // Read the file from the provided path
-        const buffer = await fs.readFile(params.file);
+        const filesPromises = params.files.map(async (file) => {
+          const buffer = await fs.readFile(file.filePath);
 
-        // Create a File object using Node.js 22's native File API
-        const fileObj = new File([buffer], params.fileName, {
-          type: params.fileType,
+          const fileObj = new File([buffer], file.fileName, {
+            type: file.fileType,
+          });
+
+          return fileObj;
         });
+
+        const files = await Promise.allSettled(filesPromises);
+
+        const failedFiles = files
+          .map((file, idx) => ({
+            ...file,
+            path: params.files[idx].filePath,
+          }))
+          .filter((file) => file.status === "rejected");
+
+        if (failedFiles.length > 0) {
+          throw new Error(
+            `Failed to read files given the following paths: ${failedFiles
+              .map((file) => `${file.path}: ${JSON.stringify(file.reason)}`)
+              .join(", ")}`
+          );
+        }
+
+        const succesfulFiles = files
+          .filter((file) => file.status === "fulfilled")
+          .map((file) => file.value);
+
+        if (succesfulFiles.length === 0) {
+          throw new Error("No files could be read to be uploaded");
+        }
 
         try {
           // Upload the file using UploadThing API
           // Note: The uploadFiles method expects a FileEsque object or array
-          const result = await utapi.uploadFiles(fileObj);
+          const results = await utapi.uploadFiles(succesfulFiles);
 
-          if (result.error) {
-            throw new Error(`Upload failed: ${JSON.stringify(result.error)}`);
+          const failedUploads = results
+            .map((result, idx) => ({
+              error: result.error,
+              file: succesfulFiles[idx],
+            }))
+            .filter((result) => result.error);
+
+          const successfulUploads = results
+            .map((result, idx) => ({
+              data: result.data,
+              file: succesfulFiles[idx],
+            }))
+            .filter((result) => result.data);
+
+          if (failedUploads.length > 0) {
+            throw new Error(
+              `
+              Successfully uploaded files: ${successfulUploads
+                .map(
+                  (upload) =>
+                    `${upload.file.name}: ${JSON.stringify(upload.data)}`
+                )
+                .join(", ")}\n\n
+
+              Failed to upload files: ${failedUploads
+                .map(
+                  (upload) =>
+                    `${upload.file.name}: ${JSON.stringify(upload.error)}`
+                )
+                .join(", ")}
+              `
+            );
           }
 
           return {
             content: [
               {
                 type: "text",
-                text: `File uploaded successfully: ${JSON.stringify(
-                  result.data
-                )}`,
+                text: `
+                Successfully uploaded files: ${successfulUploads
+                  .map(
+                    (upload) =>
+                      `${upload.file.name}: ${JSON.stringify(upload.data)}`
+                  )
+                  .join(", ")}
+                `,
               },
             ],
           };
@@ -76,7 +146,7 @@ export function createMCPUploadThing({ token }: { token: string }) {
           content: [
             {
               type: "text",
-              text: `File upload failed: ${
+              text: `Files upload failed: ${
                 error instanceof Error ? error.message : "Unknown error"
               }`,
             },
@@ -87,8 +157,81 @@ export function createMCPUploadThing({ token }: { token: string }) {
     }
   );
 
-  return {
-    mcpServer,
-    utapi,
-  };
+  mcpServer.tool(
+    "upload-files-from-urls",
+    "Upload files by URL to UploadThing. Given a list of URLs, it will upload the files by URL to UploadThing and return the URLs of the uploaded files.",
+    {
+      filesByURL: z
+        .array(z.string().url())
+        .describe("Array of URLs of files to upload to UploadThing."),
+    },
+    async (params) => {
+      try {
+        const urls = params.filesByURL;
+        const results = await utapi.uploadFilesFromUrl(urls);
+
+        const failedUploads = results
+          .map((result, idx) => ({
+            error: result.error,
+            url: urls[idx],
+          }))
+          .filter((result) => result.error);
+
+        const successfulUploads = results
+          .map((result, idx) => ({
+            data: result.data,
+            url: urls[idx],
+          }))
+          .filter((result) => result.data);
+
+        if (failedUploads.length > 0) {
+          throw new Error(
+            `
+              Successfully uploaded files by URL: ${successfulUploads
+                .map(
+                  (upload) => `${upload.url}: ${JSON.stringify(upload.data)}`
+                )
+                .join(", ")}\n\n
+
+              Failed to upload files by URL: ${failedUploads
+                .map(
+                  (upload) => `${upload.url}: ${JSON.stringify(upload.error)}`
+                )
+                .join(", ")}
+              `
+          );
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `
+                Successfully uploaded files by URL: ${successfulUploads
+                  .map(
+                    (upload) => `${upload.url}: ${JSON.stringify(upload.data)}`
+                  )
+                  .join(", ")}
+                `,
+            },
+          ],
+        };
+      } catch (error) {
+        console.error("File upload error:", error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Files by URL upload failed: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  return mcpServer;
 }
