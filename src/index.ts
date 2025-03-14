@@ -8,7 +8,7 @@ async function main() {
     throw new Error("UPLOADTHING_TOKEN is required");
   }
 
-  const { mcpServer } = createMCPUploadThing({
+  const mcpServer = createMCPUploadThing({
     token,
   });
   const transport = new StdioServerTransport();

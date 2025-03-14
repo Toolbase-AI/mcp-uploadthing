@@ -1,7 +1,7 @@
 {
   "name": "uploadthing-mcp",
   "author": "Toolbase",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "MCP for UploadThing",
   "license": "MIT",
   "homepage": "https://github.com/Toolbase-AI/uploadthing-mcp",
